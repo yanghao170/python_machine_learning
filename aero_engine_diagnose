@@ -1,0 +1,62 @@
+# coding=utf-8
+
+import pandas as pd
+import numpy as np
+from keras.utils import np_utils
+from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
+from sklearn import svm
+from sklearn import metrics
+from sklearn.linear_model import LogisticRegression
+
+hpt_path = "G:/学习/keras/data/HPT.csv"
+hpc_path = 'G:/学习/keras/data/HPC.csv'
+lpt_path = 'G:\学习\keras\data\LPT.csv'
+
+f1=open(hpt_path)
+hpt = pd.read_csv(f1)
+f1.close
+hpt = hpt.values
+train_hpt_x = hpt[hpt[:,1]>20]
+
+f2=open(hpc_path)
+hpc = pd.read_csv(f2)
+f2.close
+hpc = hpc.values
+train_hpc_x = hpc[hpc[:,1]>20]
+
+f3=open(lpt_path)
+lpt = pd.read_csv(f3)
+f3.close
+lpt = lpt.values
+train_lpt_x = lpt[lpt[:,1]>20]
+
+train_data = np.array([train_hpt_x, train_hpc_x, train_lpt_x ])
+train_data = train_data.reshape(-1,39)
+
+X = train_data[:,2:-1]
+y = train_data[:,-1]
+# y = np_utils.to_categorical(y, 4)
+min_max_scaler = preprocessing.MinMaxScaler()
+X = min_max_scaler.fit_transform(X)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.99, random_state=0)
+
+#SVM
+clf = svm.SVC(gamma=0.5,decision_function_shape='ovo')
+clf.fit(X_train, y_train)
+y_pred_svm = clf.predict(X_test)
+print('---------------SVM---------------')
+print(metrics.classification_report(y_test, y_pred_svm))
+# print(metrics.accuracy_score(y_true=y_test, y_score=y_pred))
+# print('查准率:', metrics.precision_score(y_pred, y_test))
+# print('召回率:', metrics.recall_score(y_pred, y_test))
+# print('F1:', metrics.f1_score(y_pred, y_test))
+# print(y_pred_svm)
+# print(y_test)
+
+#logistic
+lr = LogisticRegression(C=1000.0, random_state=0)
+lr.fit(X_train, y_train)
+y_pred_logi = lr.predict(X_test)
+print('---------------多分类逻辑回归---------------')
+print(metrics.classification_report(y_test, y_pred_logi))
